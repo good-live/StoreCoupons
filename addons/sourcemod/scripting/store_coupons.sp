@@ -33,14 +33,15 @@ public void OnPluginStart()
 {
 	g_cCooldown = CreateConVar("store_coupons_cooldown", "5.0", "The command cooldown");
 	
-	RegConsoleCmd("sm_redeem", CMD_Redeem);
+	RegConsoleCmd("sm_redeem", Command_Redeem);
 	
 	DB_Connect();
 	
 	AutoExecConfig(true);
+	LoadTranslations("store_coupons.phrases");
 }
 
-public Action CMD_Redeem(int client, int args)
+public Action Command_Redeem(int client, int args)
 {
 	if(g_hTimer[client] != null)
 	{
@@ -77,9 +78,9 @@ public void OnClientPostAdminCheck(int client)
 
 void DB_Connect() 
 {
-	if (!SQL_CheckConfig("giftcode"))
+	if (SQL_CheckConfig("giftcode"))
 	{
-		Database.Connect(DB_Connected, "giftcodes");
+		Database.Connect(DB_Connected, "giftcode");
 	} else {
 		SetFailState("Couldn't find a 'giftcode' entry in your database.cfg. Please add it!");
 	}
@@ -101,13 +102,13 @@ void DB_CheckCode(int client, char[] sCode)
 {
 	if(!g_bConnected)
 	{
-		CReplyToCommand(client, "The Database is not connected yet. Please try it again later");
+		CPrintToChat(client, "The Database is not connected yet. Please try it again later");
 		return;
 	}
 	
 	int userid = GetClientUserId(client);
 	char sQuery[512];
-	Format(sQuery, sizeof(sQuery), "SELECT value, code FROM giftcodes WHERE code = '%s'", sCode);
+	Format(sQuery, sizeof(sQuery), "SELECT value, code FROM codes WHERE code = '%s'", sCode);
 	char sQueryES[sizeof(sQuery) * 2 + 1];
 	g_hDatabase.Escape(sQuery, sQueryES, sizeof(sQueryES));
 	g_hDatabase.Query(DB_CodeSelect, sQuery, userid);
@@ -120,20 +121,20 @@ public void DB_CodeSelect(Database db, DBResultSet results, const char[] error, 
 		return;
 	if(db == null || strlen(error) > 0){
 		LogError("Error during selecting a code: %s", error);
-		CReplyToCommand(client, "%t %t", "TAG", "An error occured. Please contact an admin");
+		CPrintToChat(client, "%t %t", "TAG", "An error occured. Please contact an admin");
 		return;
 	}
 	
 	if(results.FetchRow())
 	{
 		int value = results.FetchInt(0);
-		CReplyToCommand(client, "%t %t", "TAG", "You succesfully redeemed a code", value);
+		CPrintToChat(client, "%t %t", "TAG", "You succesfully redeemed a code", value);
 		Store_SetClientCredits(client, Store_GetClientCredits(client) + value);
 		
 		char sCode[32];
 		results.FetchString(1, sCode, sizeof(sCode));
 		char sQuery[512];
-		Format(sQuery, sizeof(sQuery), "DELETE * FROM giftcodes WHERE code = '%s'", sCode);
+		Format(sQuery, sizeof(sQuery), "DELETE FROM codes WHERE code = '%s'", sCode);
 		char sQueryES[sizeof(sQuery) * 2 + 1];
 		g_hDatabase.Escape(sQuery, sQueryES, sizeof(sQueryES));
 		g_hDatabase.Query(DB_CodeDeletion, sQuery, userid);
@@ -143,7 +144,7 @@ public void DB_CodeSelect(Database db, DBResultSet results, const char[] error, 
 		LogToFile(Path, "%L redeemed a giftcode worth: %d credits. (%s)", client, value, sCode);
 		
 	}else{
-		CReplyToCommand(client, "%t %t", "TAG", "The provided code is invalid");
+		CPrintToChat(client, "%t %t", "TAG", "The provided code is invalid");
 	}
 }
 
@@ -154,7 +155,7 @@ public void DB_CodeDeletion(Database db, DBResultSet results, const char[] error
 		return;
 	if(db == null || strlen(error) > 0){
 		LogError("Failed to delete a code: %s", error);
-		CReplyToCommand(client, "%t %t", "TAG", "An error occured. Please contact an admin");
+		CPrintToChat(client, "%t %t", "TAG", "An error occured. Please contact an admin");
 		return;
 	}
 }
