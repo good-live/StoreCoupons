@@ -1,0 +1,28 @@
+"Phrases"
+{
+	"TAG"
+	{
+		"en"			"[{green}PLG{default}] "
+	}
+	"You have to wait till you can use this command"
+	{
+		"en"			"You have to wait till you can use this command again."
+	}
+	"You have to provide a code"
+	{
+		"en"			"You have to provide a code!"
+	}
+	"An error occured. Please contact an admin"
+	{
+		"en"			"An error occured. Please contact an admin!"
+	}
+	"You succesfully redeemed a code"
+	{
+		"#format"		"{1:d}"
+		"en"			"You succesfully redeemed a code worth {purple}{1}{default} credits."
+	}
+	"The provided code is invalid"
+	{
+		"en"			"The provided code is invalid!"
+	}
+}
